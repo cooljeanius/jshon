@@ -1,0 +1,5 @@
+jshon (20120914-1) precise; urgency=low
+
+  * Initial release of the jshon debian package 
+
+ -- Lothar Maerkle <lothar.maerkle@ecm4u.de>  Thu, 29 Nov 2012 13:26:23 -0800

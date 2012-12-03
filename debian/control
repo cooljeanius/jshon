@@ -1,0 +1,15 @@
+Source: jshon
+Section: utils
+Priority: extra
+Maintainer: Lothar Maerkle <lothar.maerkle@ecm4u.de>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.2
+Homepage: http://kmkeen.com/jshon/
+#Vcs-Git: git://git.debian.org/collab-maint/jshon.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/jshon.git;a=summary
+
+Package: jshon
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libjansson4
+Description: Parse and manipulate JSON data from the shell.
+ It is designed to be as usable as possible from within the shell and replaces fragile adhoc parsers made from grep/sed/awk as well as heavyweight one-line parsers made from perl/python. Requires Jansson.
