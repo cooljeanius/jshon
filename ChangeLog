@@ -1,0 +1,383 @@
+2014-01-26  Eric Gallager  <egall@gwmail.gwu.edu>
+
+	convert to autotools
+
+2014-01-26  Eric Gallager  <egall@gwmail.gwu.edu>
+
+	apply https://trac.macports.org/browser/trunk/dports/textproc/jshon/files/Makefile.diff
+
+2014-01-26  Eric Gallager  <egallager@comcast.net>
+
+	Update README.md
+
+	add description and homepage
+
+2014-01-26  Eric Gallager  <egallager@comcast.net>
+
+	Update README.md
+
+	minor copyediting of typos
+
+2014-01-26  Eric Gallager  <egall@gwmail.gwu.edu>
+
+	Merge branch 'patch-1' of https://github.com/edouard-lopez/jshon
+
+2014-01-26  Eric Gallager  <egall@gwmail.gwu.edu>
+
+	Merge branch 'win32' of https://github.com/mattn/jshon
+
+2014-01-26  Eric Gallager  <egall@gwmail.gwu.edu>
+
+	Merge branch 'flag_for_empty_input' of https://github.com/rowanthorpe/jshon
+
+2014-01-09  mattn  <mattn.jp@gmail.com>
+
+	Fix build on windows
+
+2014-01-07  Jon Higgs  <jhiggs@eml.cc>
+
+	ignore the built binaries.
+
+2013-12-15  Rowan Thorpe  <rowan@rowanthorpe.com>
+
+	Add description of new -E flag to manpage
+
+2013-12-15  Rowan Thorpe  <rowan@rowanthorpe.com>
+
+	Add -E flag to generate empty object from empty input
+
+2013-12-11  Kyle Keen  <keenerd@gmail.com>
+
+	Merge pull request #26 from rowanthorpe/makefile-typo
+
+	Fix Makefile typo
+
+2013-12-10  Kyle Keen  <keenerd@gmail.com>
+
+	Merge pull request #27 from merwok/patch-1
+
+	Fix typos
+
+2013-12-10  Éric Araujo  <merwok@netwok.org>
+
+	Fix typo
+
+2013-12-10  Éric Araujo  <merwok@netwok.org>
+
+	Fix typo
+
+2013-12-09  Rowan Thorpe  <rowan@rowanthorpe.com>
+
+	Fix Makefile typo
+
+2013-11-05  Kyle Keen  <keenerd@gmail.com>
+
+	-j(son literals)
+
+2013-10-10  Kyle Keen  <keenerd@gmail.com>
+
+	fix spec file
+
+2013-10-10  Kyle Keen  <keenerd@gmail.com>
+
+	Merge pull request #23 from JiriHorky/master
+
+	Makefile improvements + RPM spec file added
+
+2013-10-10  Jiri Horky  <jiri.horky@gmail.com>
+
+	spec file added
+
+2013-10-10  Jiri Horky  <jiri.horky@gmail.com>
+
+	Makefile improved
+
+	Add "install" target and other enhancements needed for RPM builds
+
+2013-09-22  Kyle Keen  <keenerd@gmail.com>
+
+	Merge pull request #22 from falconindy/master
+
+	refactor stream reading for great glory
+
+2013-09-22  Dave Reisner  <dreisner@archlinux.org>
+
+	refactor stream reading for great glory
+
+	This probably ends up being a little more memory hungry in some cases,
+	but it's a huge win overall. For seekable input, use fread, which does
+	buffering for us. Alloc the whole file at once and read into the
+	buffer. For unseekable input, fall back on a manual loop using read(2)
+	and a separate BUFSIZ'd buffer.
+
+	The net result is a huge performance win which is very noticeable on
+	larger inputs:
+
+	Using a test command of:
+
+	  journalctl -b -o json |
+	      sed -e '1i[' -e '$!s/$/,/' -e '$a]' |
+	      bash -c 'time jshon >/dev/null'
+
+	This generates a json array with nearly 22000 objects.
+
+	Before:
+
+	  real    0m12.358s
+	  user    0m12.197s
+	  sys     0m0.163s
+
+	After:
+
+	  real    0m1.864s
+	  user    0m0.810s
+	  sys     0m0.065s
+
+	And for testing seekable input, dump the same data to a file, and test
+	with:
+
+	  time jshon <json.txt >/dev/null
+
+	Before:
+
+	  real    0m12.255s
+	  user    0m12.146s
+	  sys     0m0.129s
+
+	After:
+	  real    0m0.841s
+	  user    0m0.793s
+	  sys     0m0.049s
+
+2013-09-01  Kyle Keen  <keenerd@gmail.com>
+
+	Merge pull request #20 from fschopp/master
+
+	Fixed -a on empty objects/arrays. Fixed issue with nested -a.
+
+2013-09-01  Kyle Keen  <keenerd@gmail.com>
+
+	null delimiters
+
+2013-09-01  Kyle Keen  <keenerd@gmail.com>
+
+	fix slashes, ints, de/encode_any
+
+2013-08-15  Kyle Keen  <keenerd@gmail.com>
+
+	whoops, license
+
+2013-05-25  Florian Schoppmann  <mail@florian-schoppmann.net>
+
+	Support for iterating across (-a) empty objects/arrays. Fixed bug that could occur with nested iterations.
+
+2013-04-02  Édouard Lopez  <dev+github@edouard-lopez.com>
+
+	Update README.md
+
+	pacman -> arch-based distro
+
+2013-04-02  Édouard Lopez  <dev+github@edouard-lopez.com>
+
+	Create README.md
+
+2012-12-10  Kyle Keen  <keenerd@gmail.com>
+
+	explicit return
+
+2012-11-25  Kyle Keen  <keenerd@gmail.com>
+
+	line-oriented examples
+
+2012-11-25  Kyle Keen  <keenerd@gmail.com>
+
+	release
+
+2012-11-22  Kyle Keen  <keenerd@gmail.com>
+
+	better array wrap handling
+
+2012-11-22  Kyle Keen  <keenerd@gmail.com>
+
+	fix random ordering
+
+2012-09-14  Kyle Keen  <keenerd@gmail.com>
+
+	--version
+
+2012-06-30  Kyle Keen  <keenerd@gmail.com>
+
+	-I(n place) file modification
+
+2012-06-30  Kyle Keen  <keenerd@gmail.com>
+
+	-F(ile) option
+
+2012-03-11  Kyle Keen  <keenerd@gmail.com>
+
+	JM's solaris patch
+
+2011-12-22  Kyle Keen  <keenerd@gmail.com>
+
+	release 20111222
+
+2011-12-22  Kyle Keen  <keenerd@gmail.com>
+
+	no more atoi
+
+2011-12-22  Kyle Keen  <keenerd@gmail.com>
+
+	make abort default, flag for continue
+
+2011-11-15  Kyle Keen  <keenerd@gmail.com>
+
+	prototype of graceful error handling
+
+2011-11-11  Kyle Keen  <keenerd@gmail.com>
+
+	pass by reference/value
+
+2011-11-05  Kyle Keen  <keenerd@gmail.com>
+
+	let's build pendantic
+
+2011-11-04  Kyle Keen  <keenerd@gmail.com>
+
+	streamline a few things
+
+2011-11-04  Kyle Keen  <keenerd@gmail.com>
+
+	accurate docs are good docs
+
+2011-11-04  Kyle Keen  <keenerd@gmail.com>
+
+	replace -m with -d/i
+
+2011-11-04  Kyle Keen  <keenerd@gmail.com>
+
+	make creating json from scratch much nicer
+
+2011-11-04  Kyle Keen  <keenerd@gmail.com>
+
+	actually report parse errors
+
+2011-11-04  Kyle Keen  <keenerd@gmail.com>
+
+	create nonstring elements
+
+2011-11-04  Kyle Keen  <keenerd@gmail.com>
+
+	more comprehensive error messages
+
+2011-11-04  Kyle Keen  <keenerd@gmail.com>
+
+	check an easy segfault
+
+2011-08-03  Kyle Keen  <keenerd@gmail.com>
+
+	let -u display non-strings
+
+2011-07-23  Kyle Keen  <keenerd@gmail.com>
+
+	quiet feature
+
+2011-07-23  Kyle Keen  <keenerd@gmail.com>
+
+	pop feature
+
+2011-07-20  Kyle Keen  <keenerd@gmail.com>
+
+	-a fully working
+
+2011-07-20  Kyle Keen  <keenerd@gmail.com>
+
+	single -a works, nested -a broken
+
+2011-07-19  Kyle Keen  <keenerd@gmail.com>
+
+	better error messages
+
+2011-07-19  Kyle Keen  <keenerd@gmail.com>
+
+	broken prototype of --across
+
+2011-05-09  Kyle Keen  <keenerd@gmail.com>
+
+	release?
+
+2011-05-09  Kyle Keen  <keenerd@gmail.com>
+
+	new contributor
+
+2011-05-09  Kyle Keen  <keenerd@gmail.com>
+
+	standard for arg/option errors aparently
+
+2011-03-08  Kyle Keen  <keenerd@gmail.com>
+
+	style cleanups
+
+2011-03-08  Kyle Keen  <keenerd@gmail.com>
+
+	Merge https://github.com/andrewffff/jshon
+
+2011-03-08  Andrew  <andrew@tantive.internal>
+
+	Fix compilation on BSD (incl. Mac OS X) and Linux
+
+2011-03-08  Kyle Keen  <keenerd@gmail.com>
+
+	less bsd in manpage
+
+2011-03-08  Andrew  <andrew@tantive.internal>
+
+	Indentation cleanup, no functional changes
+
+2011-03-08  Andrew  <andrew@tantive.internal>
+
+	New option -S to always sort object keys. Rename -p option to -P, so all non-manipulation command line flags are uppercase.
+
+2011-03-08  Andrew  <andrew@tantive.internal>
+
+	JSONP handler: fix incorrect comment
+
+2011-03-08  Andrew  <andrew@tantive.internal>
+
+	New option to detect and ignore JSONP wrappers (they're not valid JSON, so previously resulted in syntax errors)
+
+2011-03-08  Andrew  <andrew@tantive.internal>
+
+	Avoid segfaulting on bad input, print out jansson's error message instead
+
+2011-03-08  Andrew  <andrew@tantive.internal>
+
+	Guard the stack against underflow/overflow
+
+2011-03-08  Andrew  <andrew@tantive.internal>
+
+	Support building under both Jansson 1.x and 2.x
+
+2011-03-06  Kyle Keen  <keenerd@gmail.com>
+
+	more asprin
+
+2011-03-06  Kyle Keen  <keenerd@gmail.com>
+
+	falconindy's jansson 2.0 patch
+
+2011-02-16  Kyle Keen  <keenerd@gmail.com>
+
+	Merge https://github.com/falconindy/jshon
+
+2011-02-16  Kyle Keen  <keenerd@gmail.com>
+
+	catch one underflow
+
+2011-02-15  Dave Reisner  <d@falconindy.com>
+
+	Makefile: cleanup, add a dist target
+
+2011-02-15  Dave Reisner  <d@falconindy.com>
+
+	PKGBUILD: use package function. kill gzip call. makepkg does this for us
+

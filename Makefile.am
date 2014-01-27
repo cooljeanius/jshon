@@ -2,9 +2,9 @@
 
 ACLOCAL_AMFLAGS = -I m4 --install
 
-CFLAGS := -std=c99 -Wall -pedantic -Wextra -Werror ${CFLAGS}
+AM_CFLAGS = -std=c99 -Wall -pedantic -Wextra -Werror ${CFLAGS}
 JANSSON_CFLAGS = @JANSSON_CFLAGS@
-CFLAGS += $(JANSSON_CFLAGS)
+AM_CFLAGS += $(JANSSON_CFLAGS)
 JANSSON_LIBS = @JANSSON_LIBS@
 LDLIBS  = -ljansson
 EXTRA_LDLIBS = -lc
@@ -15,6 +15,9 @@ MANDIR = $(DESTDIR)$(PREFIX)/share/man/man1/
 TARGET_PATH = $(DESTDIR)$(PREFIX)/bin
 MY_DISTFILES = jshon
 MANFILE = jshon.1
+bin_PROGRAMS = jshon
+man_MANS = jshon.1
+EXTRA_DIST = README.md LICENSE
 
 NON_GIT_VERSION = $(shell date +%Y%m%d)
 VERSION = $(shell git show -s --format="%ci" HEAD | cut -d ' ' -f 1 | tr -d '-')
@@ -23,11 +26,12 @@ MY_VERSION = $(shell grep "^#define JSHONVER" | cut -d ' ' -f 3)
 
 all: $(MY_DISTFILES)
 
-$(MY_DISTFILES): jshon.o
-	$(CC) $(LDFLAGS) -o $(MY_DISTFILES) jshon.o $(JANSSON_LIBS) $(EXTRA_LDLIBS)
+jshon_manual: jshon.o
+	$(CC) $(LDFLAGS) -o jshon jshon.o $(JANSSON_LIBS) $(EXTRA_LDLIBS)
+.PHONY: jshon_manual
 
 jshon.o: jshon.c
-	$(CC) $(CFLAGS) $(JANSSON_CFLAGS) -o jshon.o -c jshon.c
+	$(CC) $(AM_CFLAGS) $(JANSSON_CFLAGS) -o jshon.o -c jshon.c
 
 strip: $(MY_DISTFILES)
 	strip --strip-all $(MY_DISTFILES)
@@ -47,5 +51,22 @@ orig-dist: clean
 	tar czf jshon-${VERSION}.tar.gz jshon-${VERSION}
 	${RM} -r jshon-${VERSION}
 
-.PHONY: all clean dist strip
+.PHONY: all clean-local orig-dist strip
+
+PHONY: update-ChangeLog
+update-ChangeLog:
+	    if test -d $(srcdir)/.git; then                         \
+	       $(srcdir)/build-aux/gitlog-to-changelog              \
+	          --format='%s%n%n%b%n' --no-cluster                \
+	          --strip-tab --strip-cherry-pick                   \
+	          -- $$(cat $(srcdir)/.last-cl-gen)..               \
+	        >ChangeLog.tmp                                      \
+	      && git rev-list -n 1 HEAD >.last-cl-gen.tmp           \
+	      && (echo; cat $(srcdir)/ChangeLog) >>ChangeLog.tmp    \
+	      && mv -f ChangeLog.tmp $(srcdir)/ChangeLog            \
+	      && mv -f .last-cl-gen.tmp $(srcdir)/.last-cl-gen      \
+	      && rm -f ChangeLog.tmp;                               \
+	    fi
+
+EXTRA_DIST += .last-cl-gen
 

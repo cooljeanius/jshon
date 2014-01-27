@@ -2,18 +2,19 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([jshon],[VERSION],[keenerd@gmail.com])
+AC_INIT([jshon],[2014.01.26],[keenerd@gmail.com])
 AC_CONFIG_SRCDIR([jshon.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_TARGET
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([gnits])
 AM_MAINTAINER_MODE
 
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
+AM_PROG_INSTALL_STRIP
 AC_PROG_MKDIR_P
 AC_PROG_SED
 PKG_PROG_PKG_CONFIG
