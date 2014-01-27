@@ -1,6 +1,6 @@
 # jshon - command line JSON parsing
 
-CFLAGS := -std=c99 ${CFLAGS}
+CFLAGS := -std=c99 -Wall -pedantic -Wextra -Werror ${CFLAGS}
 LDLIBS  = -ljansson
 INSTALL=install
 DESTDIR?=/
@@ -10,10 +10,10 @@ TARGET_PATH=$(DESTDIR)$(PREFIX)/bin
 DISTFILES=jshon
 MANFILE=jshon.1
 
-#VERSION=$(shell date +%Y%m%d)
+NON_GIT_VERSION=$(shell date +%Y%m%d)
 VERSION=$(shell git show -s --format="%ci" HEAD | cut -d ' ' -f 1 | tr -d '-')
-# git show -s --format="%ci" HEAD | sed -e 's/-//g' -e 's/ .*//'
-#VERSION=$(grep "^#define JSHONVER" | cut -d ' ' -f 3)
+OTHER_GIT_VERSION=$(shell git show -s --format="%ci" HEAD | sed -e 's/-//g' -e 's/ .*//')
+MY_VERSION=$(shell grep "^#define JSHONVER" | cut -d ' ' -f 3)
 
 all: $(DISTFILES)
 

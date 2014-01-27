@@ -1,3 +1,12 @@
+/*
+ * jshon.c
+ */
+
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#else
+# define JSHON_NON_AUTOTOOLS_BUILD 1
+#endif /* HAVE_CONFIG_H */
 #define _GNU_SOURCE
 #include <ctype.h>
 #include <stdio.h>
@@ -9,71 +18,72 @@
 #include <jansson.h>
 #include <errno.h>
 
-// MIT licensed, (c) 2011 Kyle Keen <keenerd@gmail.com>
+/* MIT licensed, (c) 2011 Kyle Keen <keenerd@gmail.com> */
 
 /*
-    build with gcc -o jshon jshon.c -ljansson
-
-    stdin is always json
-    stdout is always json (except for -u, -t, -l, -k)
-
-    -P -> detect and ignore JSONP wrapper, if present
-    -S -> sort keys when writing objects
-    -Q -> quiet, suppress stderr
-    -E -> allow empty input to represent empty json object
-    -V -> enable slower/safer pass-by-value
-    -C -> continue through errors
-    -F path -> read from file instead of stdin
-    -I -> change file in place, requires -F
-    -0 -> null delimiters
-
-    -t(ype) -> str, object, list, number, bool, null
-    -l(ength) -> only works on str, dict, list
-    -k(eys) -> only works on dict
-    -e(xtract) index -> only works on dict, list
-    -s(tring) value -> adds json escapes
-    -n(onstring) value -> creates true/false/null/array/object/int/float
-    -u(nstring) -> removes json escapes, display value
-    -j(son literal) -> preserves json escapes, display value
-    -p(op) -> pop/undo the last manipulation
-    -d(elete) index -> remove an element from an object or array
-    -i(nsert) index -> opposite of extract, merges json up the stack
-                       objects will overwrite, arrays will insert
-                       arrays can take negative numbers or 'append'
-    -a(cross) -> iterate across the current dict or list
-
-    --version -> returns an arbitrary number, exits
-
-    Multiple commands can be chained.
-    Entire json is loaded into memory.
-    -e/-a copies and stores on a stack with -V.
-    Could use up a lot of memory, usually does not.
-    (For now we don't have to worry about circular refs,
-    but adding 'swap' breaks that proof.)
-
-    Consider a golf mode with shortcuts for -e -a -u -p -l
-    -g 'results.*.Name.!.^.Version.!.^.Description.!'
-    -g 'data.children.*.data.url.!'
-    -g 'c.d.!.^.e.!'
-    (! on object/array does -l)
-    If you have keys with .!^* in them, use the normal options.
-    Implementing this is going to be a pain.
-    Maybe overwrite the original argv data?
-    Maybe two nested parse loops?
-
-    -L(abel)
-    add jsonpipe/style/prefix/labels\t to pretty-printed json
-
-    color?
-    loadf for stdin?
-*/
+ *  build with `gcc -o jshon jshon.c -ljansson`
+ *  or by using the Makefile
+ *
+ *  stdin is always json
+ *  stdout is always json (except for -u, -t, -l, -k)
+ *
+ *  -P -> detect and ignore JSONP wrapper, if present
+ *  -S -> sort keys when writing objects
+ *  -Q -> quiet, suppress stderr
+ *  -E -> allow empty input to represent empty json object
+ *  -V -> enable slower/safer pass-by-value
+ *  -C -> continue through errors
+ *  -F path -> read from file instead of stdin
+ *  -I -> change file in place, requires -F
+ *  -0 -> null delimiters
+ *
+ *  -t(ype) -> str, object, list, number, bool, null
+ *  -l(ength) -> only works on str, dict, list
+ *  -k(eys) -> only works on dict
+ *  -e(xtract) index -> only works on dict, list
+ *  -s(tring) value -> adds json escapes
+ *  -n(onstring) value -> creates true/false/null/array/object/int/float
+ *  -u(nstring) -> removes json escapes, display value
+ *  -j(son literal) -> preserves json escapes, display value
+ *  -p(op) -> pop/undo the last manipulation
+ *  -d(elete) index -> remove an element from an object or array
+ *  -i(nsert) index -> opposite of extract, merges json up the stack
+ *                     objects will overwrite, arrays will insert
+ *                     arrays can take negative numbers or 'append'
+ *  -a(cross) -> iterate across the current dict or list
+ *
+ *  --version -> returns an arbitrary number, exits
+ *
+ *  Multiple commands can be chained.
+ *  Entire json is loaded into memory.
+ *  -e/-a copies and stores on a stack with -V.
+ *  Could use up a lot of memory, usually does not.
+ *  (For now we do NOT have to worry about circular refs,
+ *  but adding 'swap' breaks that proof.)
+ *
+ *  Consider a golf mode with shortcuts for -e -a -u -p -l
+ *  -g 'results.*.Name.!.^.Version.!.^.Description.!'
+ *  -g 'data.children.*.data.url.!'
+ *  -g 'c.d.!.^.e.!'
+ *  (! on object/array does -l)
+ *  If you have keys with .!^* in them, use the normal options.
+ *  Implementing this is going to be a pain.
+ *  Maybe overwrite the original argv data?
+ *  Maybe two nested parse loops?
+ *
+ *  -L(abel)
+ *  add jsonpipe/style/prefix/labels\t to pretty-printed json
+ *
+ *  color?
+ *  loadf for stdin?
+ */
 
 #define JSHONVER 20131105
 
-// deal with API incompatibility between jansson 1.x and 2.x
+/* deal with API incompatibility between jansson 1.x and 2.x */
 #ifndef JANSSON_MAJOR_VERSION
 #  define JANSSON_MAJOR_VERSION (1)
-#endif
+#endif /* !JANSSON_MAJOR_VERSION */
 
 #if JANSSON_MAJOR_VERSION < 2
 #  define compat_json_loads json_loads
@@ -82,21 +92,21 @@ static json_t *compat_json_loads(const char *input, json_error_t *error)
 {
     return json_loads(input, 0, error);
 }
-#endif
+#endif /* JANSSON_MAJOR_VERSION */
 
 #if JANSSON_VERSION_HEX < 0x020400
 #  define JSON_ESCAPE_SLASH 0
-#endif
+#endif /* JANSSON_VERSION_HEX */
 
 #if (defined (__SVR4) && defined (__sun)) || defined (_WIN32)
 #include <stdarg.h>
 
-#ifdef _WIN32
+# ifdef _WIN32
 typedef unsigned int uint;
-// Avoid no-declared error for mingw/gcc with -std=c99.
+/* Avoid no-declared error for mingw/gcc with -std=c99. */
 extern int fileno(FILE*);
 extern char* strdup(const char*);
-#endif
+# endif /* _WIN32 */
 
 int asprintf(char **ret, const char *format, ...)
 {
@@ -129,7 +139,7 @@ int asprintf(char **ret, const char *format, ...)
 
     return count;
 }
-#endif
+#endif /* (__SVR4 && __sun) || _WIN32 */
 
 int dumps_flags = JSON_INDENT(1) | JSON_PRESERVE_ORDER | JSON_ESCAPE_SLASH;
 int dumps_compact = JSON_INDENT(0) | JSON_COMPACT | JSON_PRESERVE_ORDER | JSON_ESCAPE_SLASH;
@@ -139,20 +149,21 @@ char delim = '\n';
 char* file_path = "";
 int emptyinput = 0;
 
-// for error reporting
+/* for error reporting */
 int quiet = 0;
 int crash = 1;
 char** g_argv;
 
-// stack depth is limited by maxargs
-// if you need more depth, use a SAX parser
+/* stack depth is limited by maxargs
+ * if you need more depth, use a SAX parser
+ */
 #define STACKDEPTH 128
 
 json_t* stack[STACKDEPTH];
 json_t** stackpointer = stack;
 
 void err(char* message)
-// also see arg_err() and json_err() below
+/* also see arg_err() and json_err() below */
 {
     if (!quiet)
         {fprintf(stderr, "%s\n", message);}
@@ -198,7 +209,7 @@ json_t** stack_safe_peek()
     return stackpointer - 1;
 }
 
-// can not use two macros on the same line
+/* can not use two macros on the same line */
 #define POP        *((stackpointer = stack_safe_peek()))
 #define PEEK       *(stack_safe_peek())
 
@@ -211,11 +222,11 @@ json_t* maybe_deep(json_t* json)
 
 typedef struct
 {
-    void*    itr;  // object iterator
-    json_t** stk;  // stack reentry
-    uint     lin;  // array iterator
-    int      opt;  // optind reentry
-    int      fin;  // finished iteration
+    void*    itr;  /* object iterator */
+    json_t** stk;  /* stack reentry */
+    uint     lin;  /* array iterator */
+    int      opt;  /* optind reentry */
+    int      fin;  /* finished iteration */
 } mapping;
 
 mapping mapstack[STACKDEPTH];
@@ -282,7 +293,7 @@ void MAPPOP()
     mapstackpointer = map_safe_peek();
 }
 
-// can not use two macros on the same line
+/* can not use two macros on the same line */
 #define MAPPEEK       *(map_safe_peek())
 #define MAPEMPTY      (mapstackpointer == mapstack)
 
@@ -422,18 +433,19 @@ char* read_file(char* path)
 }
 
 char* remove_jsonp_callback(char* in, int* rows_skipped, int* cols_skipped)
-// this 'removes' jsonp callback code which can surround json, by returning
-// a pointer to first byte of real JSON, and overwriting the jsonp stuff at
-// the end of the input with a null byte. it also writes out the number of
-// lines, and then columns, which were skipped over.
-//
-// if a legitimate jsonp callback surround is not detected, the original
-// input is returned and no other action is taken. this means that JSONP
-// syntax errors will be effectively ignored, and will then fail json parsing
-//
-// this doesn't detect all conceivable JSONP wrappings. a simple function call
-// with a reasonable ASCII identifier will work, and that covers 99% of the
-// real world
+/* This 'removes' jsonp callback code which can surround json, by returning
+ * a pointer to first byte of real JSON, and overwriting the jsonp stuff at
+ * the end of the input with a null byte. It also writes out the number of
+ * lines, and then columns, which were skipped over.
+ *
+ * If a legitimate jsonp callback surround is not detected, the original
+ * input is returned and no other action is taken. This means that JSONP
+ * syntax errors will be effectively ignored, and will then fail json parsing.
+ *
+ * This does NOT detect all conceivable JSONP wrappings. A simple function call
+ * with a reasonable ASCII identifier will work, and that covers 99% of the
+ * real world.
+ */
 {
     #define JSON_WHITE(x) ((x) == 0x20 || (x) == 0x9 || (x) == 0xA || (x) == 0xD)
     #define JSON_IDENTIFIER(x) (isalnum(x) || (x) == '$' || (x) == '_' || (x) == '.')
@@ -441,11 +453,11 @@ char* remove_jsonp_callback(char* in, int* rows_skipped, int* cols_skipped)
     char* first = in;
     char* last = in + strlen(in) - 1;
 
-    // skip over whitespace and semicolons at the end
+    /* skip over whitespace and semicolons at the end */
     while (first < last && (JSON_WHITE(*last) || *last == ';'))
         {--last;}
 
-    // count closing brackets at the end, still skipping whitespace
+    /* count closing brackets at the end, still skipping whitespace */
     int brackets = 0;
     while (first < last && (JSON_WHITE(*last) || *last == ')'))
     {
@@ -454,20 +466,21 @@ char* remove_jsonp_callback(char* in, int* rows_skipped, int* cols_skipped)
         --last;
     }
 
-    // no closing brackets? it's not jsonp
+    /* no closing brackets? It is not jsonp */
     if (brackets == 0)
         {return in;}
 
-    // skip leading whitespace
+    /* skip leading whitespace */
     while (first < last && JSON_WHITE(*first))
         {++first;}
 
-    // skip leading identifier if present
+    /* skip leading identifier if present */
     while (first < last && JSON_IDENTIFIER(*first))
         {++first;}
 
-    // skip over forward brackets and whitespace, counting down the opening brackets
-    // against the closing brackets we've already done
+    /* skip over forward brackets and whitespace, counting down the opening
+	 * brackets against the closing brackets we have already done
+	 */
     while (first < last && (JSON_WHITE(*first) || *first == '('))
     {
         if (*first == '(')
@@ -475,15 +488,16 @@ char* remove_jsonp_callback(char* in, int* rows_skipped, int* cols_skipped)
         ++first;
     }
 
-    // at this point we have a valid jsonp wrapper, provided that the number of opening
-    // and closing brackets matched, and provided the two pointers didn't meet in
-    // the middle (leaving no room for any actual JSON)
+    /* at this point we have a valid jsonp wrapper, provided that the number of
+	 * opening and closing brackets matched, and provided the 2 pointers did
+	 * NOT meet in the middle (leaving no room for any actual JSON).
+	 */
     if (brackets != 0 || !(first < last))
         {return in;}
 
-    // count lines and columns skipped over
+    /* count lines and columns skipped over */
     *rows_skipped = *cols_skipped = 0;
-    while (in < first) 
+    while (in < first)
     {
         ++*cols_skipped;
         if (*in++ == '\n')
@@ -493,14 +507,14 @@ char* remove_jsonp_callback(char* in, int* rows_skipped, int* cols_skipped)
         }
     }
 
-    // strip off beginning and end
+    /* strip off beginning and end */
     *(last+1) = '\0';
     return first;
 }
 
 #if JANSSON_VERSION_HEX < 0x020100
 char* smart_dumps(json_t* json, int flags)
-// json_dumps is broken on simple types
+/* json_dumps is broken on simple types */
 {
     char* temp;
     char* temp2;
@@ -515,7 +529,7 @@ char* smart_dumps(json_t* json, int flags)
         case JSON_ARRAY:
             return json_dumps(json, flags);
         case JSON_STRING:
-            // hack to print escaped string
+            /* hack to print escaped string */
             j2 = json_array();
             json_array_append(j2, json);
             temp = json_dumps(j2, JSON_ESCAPE_SLASH);
@@ -565,24 +579,28 @@ char* smart_dumps(json_t* json, int flags)
             return "null";
     }
 }
-#endif
+#endif /* JANSSON_VERSION_HEX */
 
-/*char* pretty_dumps(json_t* json)
-// underscore-style colorizing
-// needs a more or less rewrite of dumps()
+#if 0
+char* pretty_dumps(json_t* json)
+/* underscore-style colorizing
+ * needs a more or less rewrite of dumps()
+ */
 {
     int depth = 0;
-    // loop over everything
-    // needs a stack
-    // number, orange
-    // string, green
-    // null, bold white
-    // string, purple?
-}*/
+    /* loop over everything
+     * needs a stack
+     * number, orange
+     * string, green
+     * null, bold white
+     * string, purple?
+	 */
+}
+#endif /* 0 */
 
 #if JANSSON_VERSION_HEX < 0x020300
 json_t* smart_loads(char* j_string)
-// json_loads is broken on simple types
+/* json_loads is broken on simple types */
 {
     json_t* json;
     json_error_t error;
@@ -602,7 +620,7 @@ json_t* smart_loads(char* j_string)
     json_error_t error;
     return json_loads(j_string, JSON_DECODE_ANY, &error);
 }
-#endif
+#endif  /* JANSSON_VERSION_HEX */
 
 char* pretty_type(json_t* json)
 {
@@ -669,7 +687,7 @@ int compare_strcmp(const void *a, const void *b)
 }
 
 void keys(json_t* json)
-// shoddy, prints directly
+/* shoddy, prints directly */
 {
     void* iter;
     const char** keys;
@@ -744,7 +762,7 @@ const char* unstring(json_t* json)
 }
 
 int estrtol(char* key)
-// strtol with more error handling
+/* strtol with more error handling */
 {
     int i;
     char* endptr;
@@ -753,7 +771,7 @@ int estrtol(char* key)
     if (errno || *endptr!='\0')
     {
         arg_err("parse error: illegal index on arg %i, \"%s\"");
-        //return json_null();
+        /* return json_null(); */
         i = 0;
     }
     return i;
@@ -777,7 +795,7 @@ json_t* extract(json_t* json, char* key)
             i = estrtol(key);
             if ((i < -s) || (i >= s))
                 {json_err("index out of bounds", json);}
-            // stupid fix for a stupid modulus operation
+            /* stupid fix for a stupid modulus operation */
             while (i<0)
                 {i+=s;}
             return json_array_get(json, i % s);
@@ -795,7 +813,7 @@ json_t* extract(json_t* json, char* key)
 }
 
 json_t* delete(json_t* json, char* key)
-// no error checking
+/* no error checking */
 {
     int i, s;
     switch (json_typeof(json))
@@ -823,7 +841,7 @@ json_t* delete(json_t* json, char* key)
 }
 
 json_t* update_native(json_t* json, char* key, json_t* j_value)
-// no error checking
+/* no error checking */
 {
     int i, s;
     switch (json_typeof(json))
@@ -837,7 +855,7 @@ json_t* update_native(json_t* json, char* key, json_t* j_value)
                 json_array_append(json, j_value);
                 return json;
             }
-            // otherwise, insert
+            /* otherwise, insert */
             i = estrtol(key);
             s = json_array_size(json);
             if (s == 0)
@@ -888,20 +906,20 @@ int main (int argc, char *argv[])
     json_t* json = NULL;
     json_t* jval = NULL;
     json_error_t error;
-    int output = 1;  // flag if json should be printed
+    int output = 1;  /* flag if json should be printed */
     int optchar;
-    int jsonp = 0;   // flag if we should tolerate JSONP wrapping
-    int jsonp_rows = 0, jsonp_cols = 0;   // rows+cols skipped over by JSONP prologue
+    int jsonp = 0;   /* flag if we should tolerate JSONP wrapping */
+    int jsonp_rows = 0, jsonp_cols = 0; /* rows+cols skipped over by JSONP prologue */
     int empty;
     g_argv = argv;
 
-    // todo: get more jsonp stuff out of main
+    /* TODO: get more jsonp stuff out of main */
 
-    // avoiding getopt_long for now because the BSD version is a pain
+    /* avoiding getopt_long for now because the BSD version is a pain */
     if (argc == 2 && strncmp(argv[1], "--version", 9) == 0)
         {printf("%i\n", JSHONVER); exit(0);}
 
-    // non-manipulation options
+    /* non-manipulation options */
     while ((optchar = getopt(argc, argv, ALL_OPTIONS)) != -1)
     {
         switch (optchar)
@@ -960,7 +978,7 @@ int main (int argc, char *argv[])
     optind = 1;
 #ifdef BSD
     optreset = 1;
-#endif
+#endif /* BSD */
 
     if (in_place && strlen(file_path)==0)
         {err("warning: in-place editing (-I) requires -F");}
@@ -994,7 +1012,7 @@ int main (int argc, char *argv[])
         if (!quiet)
             {fprintf(stderr, "json %sread error: line %0d column %0d: %s\n",
                 jsonp_status, error.line + jsonp_rows, error.column + jsonp_cols, error.text);}
-#endif
+#endif /* JANSSON_MAJOR_VERSION */
         exit(1);
     }
 
@@ -1018,71 +1036,71 @@ int main (int argc, char *argv[])
             empty = 0;
             switch (optchar)
             {
-                case 't':  // id type
+                case 't':  /* id type */
                     printf("%s\n", pretty_type(PEEK));
                     output = 0;
                     break;
-                case 'l':  // length
+                case 'l':  /* length */
                     printf("%i\n", length(PEEK));
                     output = 0;
                     break;
-                case 'k':  // keys
+                case 'k':  /* keys */
                     keys(PEEK);
                     output = 0;
                     break;
-                case 'u':  // unescape string
+                case 'u':  /* unescape string */
                     printf("%s%c", unstring(PEEK), delim);
                     output = 0;
                     break;
-                case 'p':  // pop stack
+                case 'p':  /* pop stack */
                     json = POP;
                     if (by_value)
                         {json_decref(json);}
                     output = 1;
                     break;
-                case 's':  // load string
+                case 's':  /* load string */
                     arg1 = (char*) strdup(optarg);
                     PUSH(json_string(arg1));
                     output = 1;
                     break;
-                case 'n':  // load nonstring
+                case 'n':  /* load nonstring */
                     arg1 = (char*) strdup(optarg);
                     PUSH(nonstring(arg1));
                     output = 1;
                     break;
-                case 'e':  // extract
+                case 'e':  /* extract */
                     arg1 = (char*) strdup(optarg);
                     json = PEEK;
                     PUSH(extract(maybe_deep(json), arg1));
                     output = 1;
                     break;
-                case 'j':  // json literal
+                case 'j':  /* json literal */
                     printf("%s%c", smart_dumps(PEEK, dumps_compact), delim);
                     output = 0;
                     break;
-                case 'd':  // delete
+                case 'd':  /* delete */
                     arg1 = (char*) strdup(optarg);
                     json = POP;
                     PUSH(delete(json, arg1));
                     output = 1;
                     break;
-                case 'i':  // insert
+                case 'i':  /* insert */
                     arg1 = (char*) strdup(optarg);
                     jval = POP;
                     json = POP;
                     PUSH(update_native(json, arg1, jval));
                     output = 1;
                     break;
-                case 'a':  // across
-                    // something about -a is not mappable?
+                case 'a':  /* across */
+                    /* something about -a is not mappable? */
                     MAPPUSH();
                     empty = map_safe_peek()->fin;
                     if (!empty)
                         {MAPNEXT();}
                     output = 0;
                     break;
-                case 'P':  // not manipulations
-                case 'S': 
+                case 'P':  /* not manipulations */
+                case 'S':
                 case 'Q':
                 case 'E':
                 case 'V':
@@ -1112,4 +1130,4 @@ int main (int argc, char *argv[])
     return 0;
 }
 
-
+/* EOF */
