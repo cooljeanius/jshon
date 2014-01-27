@@ -353,9 +353,9 @@ nofail:
             return NULL;
         }
         strncpy(content, "{}", 3);
-    }
-    else
+    } else {
         content[content_size] = '\0';
+    }
     return content;
 
 fail:
