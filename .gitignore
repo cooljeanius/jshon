@@ -9,6 +9,7 @@ Makefile.orig
 *~
 confdefs.h
 config.h
+conftest*
 stamp-*
 *.status
 TAGS
@@ -23,3 +24,5 @@ cscope.files
 config*.lineno
 *deps/*.*o
 *.tab.c
+*(Autosaved)*
+*.tar.gz

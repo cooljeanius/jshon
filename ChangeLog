@@ -1,5 +1,11 @@
 2014-01-26  Eric Gallager  <egall@gwmail.gwu.edu>
 
+	actually use automake somewhat more properly
+
+	also switch to gnits strictness
+
+2014-01-26  Eric Gallager  <egall@gwmail.gwu.edu>
+
 	convert to autotools
 
 2014-01-26  Eric Gallager  <egall@gwmail.gwu.edu>
