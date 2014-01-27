@@ -427,6 +427,10 @@ char* read_file(char* path)
     FILE* fp;
     char* content;
     fp = fopen(path, "r");
+    if ( !fp ) {
+      fprintf(stderr, "unable to read file %s: %s\n", path, strerror(errno));
+      return NULL;
+    }
     content = read_stream(fp);
     fclose(fp);
     return content;
@@ -989,6 +993,15 @@ int main (int argc, char *argv[])
         {content = read_file(file_path);}
     else
         {content = read_stdin();}
+	/* these next two conditionals are trying to do similar things;
+	 * I am not sure which one to favor when merging from their respective
+	 * forks...
+	 */
+    if (!content) {
+      fprintf(stderr, "error: failed to read input\n");
+      exit(1);
+    }
+
     if (!content[0] && !quiet && !emptyinput)
         {fprintf(stderr, "warning: nothing to read\n");}
 
