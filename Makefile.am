@@ -18,6 +18,7 @@ MANFILE = jshon.1
 bin_PROGRAMS = jshon
 man_MANS = jshon.1
 EXTRA_DIST = README.md LICENSE
+DISTCLEANFILES = *~ *.tar.gz autoscan.log .DS_Store
 
 NON_GIT_VERSION = $(shell date +%Y%m%d)
 VERSION = $(shell git show -s --format="%ci" HEAD | cut -d ' ' -f 1 | tr -d '-')
@@ -38,6 +39,7 @@ strip: $(MY_DISTFILES)
 
 clean-local:
 	rm -f *.o $(MY_DISTFILES)
+	rm -rf autom4te.cache || rmdir autom4te.cache
 
 install-jshon:
 	$(INSTALL) $(MY_DISTFILES) $(TARGET_PATH)/$(MY_DISTFILES)

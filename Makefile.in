@@ -332,6 +332,7 @@ MY_DISTFILES = jshon
 MANFILE = jshon.1
 man_MANS = jshon.1
 EXTRA_DIST = README.md LICENSE .last-cl-gen
+DISTCLEANFILES = *~ *.tar.gz autoscan.log .DS_Store
 NON_GIT_VERSION = $(shell date +%Y%m%d)
 OTHER_GIT_VERSION = $(shell git show -s --format="%ci" HEAD | sed -e 's/-//g' -e 's/ .*//')
 MY_VERSION = $(shell grep "^#define JSHONVER" | cut -d ' ' -f 3)
@@ -778,6 +779,7 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -893,6 +895,7 @@ strip: $(MY_DISTFILES)
 
 clean-local:
 	rm -f *.o $(MY_DISTFILES)
+	rm -rf autom4te.cache || rmdir autom4te.cache
 
 install-jshon:
 	$(INSTALL) $(MY_DISTFILES) $(TARGET_PATH)/$(MY_DISTFILES)
