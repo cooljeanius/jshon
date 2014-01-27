@@ -3,7 +3,7 @@
 
 AC_PREREQ([2.69])
 AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
-AC_CONFIG_SRCDIR([jshon.c])
+AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
@@ -11,6 +11,8 @@ AC_PROG_CC
 AC_PROG_INSTALL
 
 # Checks for libraries.
+# FIXME: Replace `main' with a function in `-lc':
+AC_CHECK_LIB([c], [main])
 # FIXME: Replace `main' with a function in `-ljansson':
 AC_CHECK_LIB([jansson], [main])
 
