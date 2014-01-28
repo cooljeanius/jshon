@@ -1,0 +1,10 @@
+language: C
+
+install:
+  # Prerequisites
+  - "sudo apt-get install debhelper libjansson4 libjansson-dev"
+
+# try to build
+script: ./configure && make
+
+#TODO: include test described in README
